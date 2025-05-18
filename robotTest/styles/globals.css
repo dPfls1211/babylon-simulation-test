@@ -1,0 +1,268 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body,
+div,
+span,
+applet,
+object,
+iframe,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+blockquote,
+pre,
+a,
+abbr,
+acronym,
+address,
+big,
+cite,
+code,
+del,
+dfn,
+em,
+img,
+ins,
+kbd,
+q,
+s,
+samp,
+small,
+strike,
+strong,
+sub,
+sup,
+tt,
+var,
+b,
+u,
+i,
+center,
+dl,
+dt,
+dd,
+ol,
+ul,
+li,
+fieldset,
+form,
+label,
+legend,
+table,
+caption,
+tbody,
+tfoot,
+thead,
+tr,
+th,
+td,
+article,
+aside,
+canvas,
+details,
+embed,
+figure,
+figcaption,
+footer,
+header,
+hgroup,
+menu,
+nav,
+output,
+ruby,
+section,
+summary,
+time,
+mark,
+audio,
+video,
+input {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: 100%;
+  font: inherit;
+  vertical-align: baseline;
+}
+
+/* HTML5 display-role reset for older browsers */
+article,
+aside,
+details,
+figcaption,
+figure,
+footer,
+header,
+hgroup,
+menu,
+nav,
+section {
+  display: block;
+}
+
+body {
+  line-height: 1;
+}
+
+ol,
+ul {
+  list-style: none;
+}
+
+blockquote,
+q {
+  quotes: none;
+}
+
+blockquote:before,
+blockquote:after,
+q:before,
+q:after {
+  content: "";
+  content: none;
+}
+
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+body {
+  font-family:
+    "Noto Sans";
+  color: #3E3E3E;
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: normal;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+:root {
+  font-family:
+    "Noto Sans";
+  color: #3E3E3E;
+  font-size: 16px;
+  background: #F2F2F2;
+  --font-color-bold--: #3e3e3e;
+  --font-color-semi--: #8e8e8e;
+  --font-color-regular--: #2F2F2F;
+  --bar-background-: #D9D9D9;
+  --title-rename-background-: #F6F6F6;
+  --inputsearch-background-: #dbdbdb;
+  --default-Btn--: #414141;
+  --icon-hover-fill: #ECECEC;
+  --profile-name-color: #444;
+  --pointColor-blue-: #3988E5;
+}
+
+@font-face {
+  font-family: "Noto Sans";
+  font-weight: 100;
+  src: url("/fonts/NotoSansKR_thin.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Noto Sans";
+  font-weight: 900;
+  src: url("/fonts/NotoSansKR-Black.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Noto Sans";
+  font-weight: 700;
+  src: url("/fonts/NotoSansKR-Bold.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Noto Sans";
+  font-weight: 800;
+  src: url("/fonts/NotoSansKR-ExtraBold.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Noto Sans";
+  font-weight: 200;
+  src: url("/fonts/NotoSansKR-ExtraLight.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Noto Sans";
+  font-weight: 300;
+  src: url("/fonts/NotoSansKR-Light.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Noto Sans";
+  font-weight: 500;
+  src: url("/fonts/NotoSansKR-Medium.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Noto Sans";
+  font-weight: 400;
+  src: url("/fonts/NotoSansKR-Regular.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Noto Sans";
+  font-weight: 600;
+  src: url("/fonts/NotoSansKR-SemiBold.ttf") format("truetype");
+}
+
+/* 미디어 쿼리: 해상도가 768px 이상인 경우 */
+@media screen and (min-width: 768px) {
+  p {
+    font-size: 10px;
+    /* 텍스트 크기를 늘림 */
+  }
+}
+
+@media screen and (min-width: 1920px) {
+  p {
+    font-size: 16px;
+    /* 텍스트 크기를 늘림 */
+  }
+}
+
+@media screen and (min-width: 2650px) {
+  p {
+    font-size: 20px;
+    /* 텍스트 크기를 늘림 */
+  }
+}
+
+:root {
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 214, 219, 220;
+  --background-end-rgb: 255, 255, 255;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --foreground-rgb: 255, 255, 255;
+    --background-start-rgb: 0, 0, 0;
+    --background-end-rgb: 0, 0, 0;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}

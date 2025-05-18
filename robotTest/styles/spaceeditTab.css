@@ -1,0 +1,42 @@
+.ant-segmented {
+    background: #fff !important;
+}
+
+
+.ant-segmented-item-selected {
+    border-radius: 50px !important;
+    background-color: #ECEAFF !important;
+}
+
+.ant-segmented-thumb {
+    border-radius: 50px !important;
+    background-color: #ECEAFF !important;
+}
+
+.ant-segmented-item-selected {
+    color: #554AD3 !important;
+    text-align: center !important;
+    font-family: "Noto Sans" !important;
+    font-size: 15px !important;
+    font-style: normal !important;
+    font-weight: 600 !important;
+    line-height: normal !important;
+}
+
+.ant-segmented-item-label {
+    padding: 10px 21px !important;
+}
+
+.Mui-focused {
+    color: #7e73fe !important;
+}
+
+.MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+    color: #7e73fe !important;
+    border-color: #7e73fe !important;
+
+}
+
+.MuiOutlinedInput-input {
+    height: 20px !important;
+}
