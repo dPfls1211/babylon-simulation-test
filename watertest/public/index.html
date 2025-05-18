@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+    <title>Babylon.js sample code</title>
+
+    <!-- Babylon.js -->
+    <script src="https://cdn.babylonjs.com/babylon.js"></script>
+    <script src="https://cdn.babylonjs.com/materialsLibrary/babylonjs.materials.min.js"></script>
+    <script src="https://cdn.babylonjs.com/proceduralTexturesLibrary/babylonjs.proceduralTextures.min.js"></script>
+    <script src="https://cdn.babylonjs.com/postProcessesLibrary/babylonjs.postProcess.min.js"></script>
+    <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.js"></script>
+    <script src="https://cdn.babylonjs.com/serializers/babylonjs.serializers.min.js"></script>
+    <script src="https://cdn.babylonjs.com/gui/babylon.gui.min.js"></script>
+    <script src="https://cdn.babylonjs.com/inspector/babylon.inspector.bundle.js"></script>
+    <script src="https://code.jquery.com/pep/0.4.3/pep.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+
+    <link rel="stylesheet" href="public.css" />
+    <script src="./timeEvent.js"></script>
+    <style>
+      html,
+      body {
+        overflow: hidden;
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+
+      #renderCanvas {
+        width: 100%;
+        height: 100%;
+        touch-action: none;
+        background: linear-gradient(
+          180deg,
+          #1c2949 0%,
+          #030620 100%,
+          #030620 100%
+        );
+      }
+
+      #canvasZone {
+        width: 100%;
+        height: 100%;
+      }
+
+     #tabs {
+        position: absolute;
+        top: 5rem;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="canvasZone"><canvas id="renderCanvas"></canvas></div>
+    <div id="topTitle">
+      <div id="titleName">지하차도 수위 모니터링</div>
+
+      <div class="modelinfo-view-title-right">
+        <div class="modelinfo-view-title-right-topAlarm" id="topAlarmBn">
+          <input type="checkbox" />
+          <div class="top-line-modelinfo-view"></div>
+          <div class="top-time-modelinfo-view">
+            <label class="top-time-modelinfo-view-date" id="modelinfo-view-date"
+              >2024. 02. 01</label
+            >
+            <label class="top-time-modelinfo-view-time" id="modelinfo-view-time"
+              >10:00 pm</label
+            >
+          </div>
+        </div>
+      </div>
+    </div>
+  <!-- <TabContext value={value} id="tabs">
+  <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+    <TabList onChange={handleChange} aria-label="lab API tabs example">
+      <Tab label="Item One" value="1" />
+      <Tab label="Item Two" value="2" />
+      <Tab label="Item Three" value="3" />
+    </TabList>
+  </Box>
+  <TabPanel value="1">Item One</TabPanel>
+  <TabPanel value="2">Item Two</TabPanel>
+  <TabPanel value="3">Item Three</TabPanel>
+</TabContext> -->
+    <script>
+      var canvas = document.getElementById("renderCanvas");
+
+      const tableScene = "./modeling/water.glb"; //"test-only water.glb";
+      var startRenderLoop = function (engine, canvas) {
+        engine.runRenderLoop(function () {
+          if (sceneToRender && sceneToRender.activeCamera) {
+            sceneToRender.render();
+          }
+        });
+      };
+
+      var engine = null;
+      var scene = null;
+      let clipPlaneX,
+        planeHelperX,
+        stencilPlaneX,
+        clipPlaneY,
+        planeHelperY,
+        stencilPlaneY,
+        clipPlaneZ,
+        planeHelperZ,
+        stencilPlaneZ,
+        meshInsideMaterial;
+      let mesh;
+      var sceneToRender = null;
+      var createDefaultEngine = function () {
+        return new BABYLON.Engine(canvas, true, {
+          preserveDrawingBuffer: true,
+          stencil: true,
+          disableWebGL2Support: false,
+        });
+      };
+      class Playground {
+        static async CreateScene(engine, canvas) {
+          let scene = new BABYLON.Scene(engine);
+          const cameraMin = 0.1;
+          const cameraMax = 1000;
+          const createCamera = () => {
+            const camera = new BABYLON.ArcRotateCamera(
+              "ArcRotateCamera",
+              3.06,
+              0,
+              2.96,
+              new BABYLON.Vector3(0, 0, 0),
+              scene
+            );
+            //  const camera = new BABYLON.Camera(
+            //     "Camera",
+            //     new BABYLON.Vector3(0, 0, 0),
+            //     scene
+            // );
+            // camera.fov = (60 * Math.PI) / 180;
+            camera.attachControl();
+            camera.minZ = cameraMin;
+            camera.maxZ = cameraMax;
+            camera.upperBetaLimit = Math.PI / 2;
+            camera.lowerRadiusLimit = 20; // 줌아웃 최대값
+            camera.upperRadiusLimit = 300; // 줌인 최대값
+            camera.wheelPrecision = 5;
+            camera.setPosition(new BABYLON.Vector3(0, 0, -50));
+            return camera;
+          };
+          const camera = createCamera();
+          scene.clearColor = new BABYLON.Color4(0, 0, 0, 0);
+          let lighting = BABYLON.CubeTexture.CreateFromPrefilteredData(
+            "https://playground.babylonjs.com/textures/country.env",
+            scene
+          );
+          lighting.name = "runyonCanyon";
+          lighting.gammaSpace = false;
+          scene.environmentTexture = lighting;
+          // const skybox = scene.createDefaultSkybox(
+          //   null,
+          //   true,
+          //   (scene.activeCamera.maxZ - scene.activeCamera.minZ) / 2,
+          //   0.3,
+          //   false
+          // );
+          // scene.createDefaultSkybox(scene.environmentTexture);
+          scene.createDefaultLight();
+          scene.environmentTexture.intensity = 1;
+          scene.activeCamera = camera;
+          let clipPlaneY,
+            plane,
+            stencilPlane,
+            mesh,
+            meshInsideMaterial,
+            meshOutsideMaterial;
+          meshOutsideMaterial = new BABYLON.StandardMaterial(
+            "meshOutsideMaterial",
+            scene
+          );
+          meshOutsideMaterial.diffuseColor = new BABYLON.Color3(1.0, 1.0, 0);
+          meshOutsideMaterial.backFaceCulling = true;
+          meshInsideMaterial = new BABYLON.CustomMaterial(
+            "meshInsideMaterial",
+            scene
+          );
+          meshInsideMaterial.diffuseColor = new BABYLON.Color3(1.0, 1.0, 0);
+          meshInsideMaterial.backFaceCulling = false;
+          //       meshInsideMaterial.Fragment_Before_FragColor(
+          //         "\
+          //   if(gl_FrontFacing) discard;\
+          //     "
+          //       );
+          let stencilPlaneMaterial = new BABYLON.StandardMaterial(
+            "stencilPlaneMaterial",
+            scene
+          );
+          // stencilPlaneMaterial.diffuseColor = new BABYLON.Color3(1.0, 1.0, 0);
+          stencilPlaneMaterial.diffuseColor = new BABYLON.Color3(0, 0.463, 0.8);
+          stencilPlaneMaterial.alpha = 0.563;
+          stencilPlaneMaterial.roughness = 0.5;
+          stencilPlaneMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
+          stencilPlaneMaterial.emissiveColor = new BABYLON.Color3(0, 0, 0);
+          stencilPlaneMaterial.ambientColor = new BABYLON.Color3(0, 0, 0);
+
+          BABYLON.SceneLoader.ImportMesh(
+            "",
+            "",
+            tableScene,
+            scene,
+            function (meshes) {
+              engine.resize();
+
+              scene.setRenderingAutoClearDepthStencil(0, false);
+              scene.setRenderingAutoClearDepthStencil(1, false);
+              scene.setRenderingAutoClearDepthStencil(2, false);
+              mesh = meshes[1];
+              let meshInside = meshes[1].clone();
+              mesh.material = scene.getMaterialByName("water");
+              meshInside.material = scene.getMaterialByName("water");
+              let boundingBox = mesh.getBoundingInfo().boundingBox;
+              let bboxSizeX = boundingBox.maximum.x - boundingBox.minimum.x;
+              let bboxSizeY = boundingBox.maximum.y - boundingBox.minimum.y;
+              let bboxSizeZ = boundingBox.maximum.z - boundingBox.minimum.z;
+              let bboxMax = Math.max(
+                boundingBox.maximum.x + 10,
+                boundingBox.maximum.y,
+                boundingBox.maximum.z
+              );
+
+              scene.onBeforeRenderObservable.add(() => {
+                // clear depth
+                engine.clear(undefined, false, true, false);
+              });
+
+              // GUI
+              const sliderWidth = "170px";
+              let advancedTexture =
+                BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+              let panel = new BABYLON.GUI.StackPanel();
+              panel.width = "200px";
+              panel.background = "#ffffff";
+              panel.horizontalAlignment =
+                BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+              panel.verticalAlignment =
+                BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
+              panel.paddingTop = "-10px";
+              panel.paddingLeft = "-10px";
+              panel.paddingBottom = "-10px";
+              advancedTexture.addControl(panel);
+              let header = new BABYLON.GUI.TextBlock();
+              header.text = "Y";
+              header.width = "190px";
+              header.paddingTop = "10px";
+              header.textVerticalAlignment =
+                BABYLON.GUI.Control.VERTICAL_ALIGNMENT_TOP;
+              header.textHorizontalAlignment =
+                BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_LEFT;
+              header.color = "green";
+              panel.addControl(header);
+
+              let slider = new BABYLON.GUI.Slider();
+              slider.name = "Y";
+              slider.minimum = -boundingBox.maximum.y;
+              slider.maximum = -boundingBox.minimum.y + 12;
+              slider.value = -boundingBox.maximum.y;
+              clipPlaneY = -boundingBox.maximum.y;
+              slider.paddingTop = "10px";
+              slider.height = "30px";
+              slider.width = sliderWidth;
+              slider.horizontalAlignment =
+                BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
+              slider.color = "green";
+              slider.onValueChangedObservable.add(function (value) {
+                clipPlaneY = value;
+              });
+              panel.addControl(slider);
+              //   let planes = BABYLON.Mesh.CreatePlane(
+              //     "planeY",
+              //     2 * bboxMax,
+              //     scene
+              //   );
+
+              //   planes.rotate(new BABYLON.Vector3(1, 0, 0), Math.PI / 2);
+              //   planes.position.set(0, -10, 0);
+              let plane = BABYLON.Mesh.CreatePlane(
+                "planeY",
+                2 * bboxMax,
+                scene
+              );
+              plane.rotate(new BABYLON.Vector3(1, 0, 0), Math.PI / 2);
+              plane.position.set(0, bboxSizeY, 0);
+              plane.material = new BABYLON.StandardMaterial(
+                "planeMaterial",
+                scene
+              );
+              plane.material.diffuseColor = new BABYLON.Color3(1.0, 1.0, 1.0);
+              plane.material.wireframe = true;
+
+              let stencilPlane = BABYLON.Mesh.CreatePlane(
+                "planeStencil",
+                2 * bboxMax,
+                scene
+              );
+              stencilPlane.rotate(new BABYLON.Vector3(1, 0, 0), Math.PI / 2);
+              stencilPlane.position.set(0, bboxSizeY, 0);
+              stencilPlane.material = scene.getMaterialByName("water");
+              // stencilPlane.visibility = 0;
+              plane.visibility = 0;
+
+              mesh.renderingGroupId = 0;
+              meshInside.renderingGroupId = 3;
+              stencilPlane.renderingGroupId = 2;
+
+              // addObservers();
+
+              mesh.onBeforeRenderObservable.add(function () {
+                scene.clipPlane = new BABYLON.Plane(0, 1, 0, clipPlaneY);
+                plane.position.set(0, -clipPlaneY, 0);
+                // engine.setStencilBuffer(true);
+              });
+
+              mesh.onAfterRenderObservable.add(function () {
+                scene.clipPlane = null;
+                // engine.setStencilBuffer(false);
+              });
+
+              meshInside.onBeforeRenderObservable.add(function () {
+                scene.clipPlane = new BABYLON.Plane(0, 1, 0, clipPlaneY);
+                plane.position.set(0, -clipPlaneY, 0);
+                stencilPlane.position.set(0, -clipPlaneY, 0);
+                engine.setStencilBuffer(true);
+              });
+
+              meshInside.onAfterRenderObservable.add(function () {
+                scene.clipPlane = null;
+                engine.setStencilBuffer(false);
+              });
+
+              let previousStencilMask = engine.getStencilMask();
+              let previousStencilFunction = engine.getStencilFunction();
+              stencilPlane.onBeforeRenderObservable.add(function () {
+                engine.setStencilBuffer(true);
+                engine.setStencilMask(0x00);
+                engine.setStencilFunction(BABYLON.Engine.EQUAL);
+              });
+
+              stencilPlane.onAfterRenderObservable.add(() => {
+                engine.setStencilBuffer(false);
+                engine.setStencilMask(previousStencilMask);
+                engine.setStencilFunction(previousStencilFunction);
+              });
+            }
+          );
+
+          const testglb = await BABYLON.SceneLoader.ImportMeshAsync(
+            "",
+            "./modeling/",
+            "underpass.glb",
+            scene
+          );
+          testglb.meshes.forEach(m => {
+            if (m.name.includes("water")) {
+              m.visibility = 0;
+              if (m.name.includes("sensor")) m.visibility = 1;
+            }
+
+            if (m.name.includes("section_box_cover")) {
+              m.material.alpha = 0.8;
+              //m.visibility = 0;
+            }
+          });
+          return scene;
+        }
+      }
+
+      createScene = function () {
+        return Playground.CreateScene(engine, engine.getRenderingCanvas());
+      };
+      window.initFunction = async function () {
+        var asyncEngineCreation = async function () {
+          try {
+            return createDefaultEngine();
+          } catch (e) {
+            console.log(
+              "the available createEngine function failed. Creating the default engine instead"
+            );
+            return createDefaultEngine();
+          }
+        };
+
+        window.engine = await asyncEngineCreation();
+        if (!engine) throw "engine should not be null.";
+        startRenderLoop(engine, canvas);
+        window.scene = createScene();
+      };
+      initFunction().then(() => {
+        scene.then(returnedScene => {
+          sceneToRender = returnedScene;
+        });
+      });
+
+      // Resize
+      window.addEventListener("resize", function () {
+        engine.resize();
+      });
+      function generateRandomInRange() {
+        var positive = Math.random() < 0.5;
+        var number = 5 + Math.random() * (10 - 5);
+        //let number = -8 + 16 * Math.random(); // -10에서 10 사이의 난수 생성
+        return positive ? number : -number;
+      }
+    </script>
+  </body>
+</html>
